@@ -55,7 +55,10 @@ async function guardar(tarea) {
         Estado: { select: { name: 'Pendiente' } },
         Categoria: { select: { name: tarea.categoria } },
         Prioridad: { select: { name: tarea.prioridad } },
-        Seguimiento: { checkbox: false }
+        Seguimiento: { checkbox: false },
+        Fecha: { date: null },
+        Proyecto: { select: null },
+        Ubicacion: { select: null }
       }
     });
     return res;
