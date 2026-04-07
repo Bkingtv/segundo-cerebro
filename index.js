@@ -1,126 +1,67 @@
 require('dotenv').config();
 const express = require('express');
-const axios = require('axios');
 const { Client } = require('@notionhq/client');
 const TelegramBot = require('node-telegram-bot-api');
-
 const app = express();
 app.use(express.json());
-
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
 const PORT = process.env.PORT || 3000;
-
 const SEGUNDO_CEREBRO_PAGE = '33a6d89a-a55f-803a-9aa0-c119ac95a169';
 const TAREA_DATABASE = '33a6d89a-a55f-8121-a3ae-fcfb55dc8fa3';
-
 const notion = new Client({ auth: NOTION_API_KEY });
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: false });
-
-async function sendTelegramMessage(chatId, text) {
+async function send(chatId, text) {
   try {
     await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
-  } catch (error) {
-    console.error('Telegram Error:', error.message);
+  } catch (e) {
+    console.log('Error:', e.message);
   }
 }
-
-async function analyzeWithAI(message) {
-  const categorias = ['Mascota', 'Vehiculo', 'Universidad', 'Hogar', 'Trabajo', 'Finanzas', 'Personal'];
-  const prioridades = ['Alta', 'Media', 'Baja'];
+function analizar(mensaje) {
+  const m = mensaje.toLowerCase();
+  let cat = 'Personal';
+  let pri = 'Media';
   
-  let categoria = 'Personal';
-  let prioridad = 'Media';
-  let titulo = message;
-  let detalle = null;
+  if (m.includes('universidad') || m.includes('tarea') || m.includes('cátedra')) cat = 'Universidad';
+  else if (m.includes('trabajo') || m.includes('reunión')) cat = 'Trabajo';
+  else if (m.includes('comprar') || m.includes('leche') || m.includes('casa')) cat = 'Hogar';
+  else if (m.includes('moto') || m.includes('carro')) cat = 'Vehiculo';
+  else if (m.includes('mascota') || m.includes('perro')) cat = 'Mascota';
+  else if (m.includes('dinero') || m.includes('gasto')) cat = 'Finanzas';
   
-  const msgLower = message.toLowerCase();
+  if (m.includes('urgente') || m.includes('importante')) pri = 'Alta';
   
-  if (msgLower.includes('universidad') || msgLower.includes('tarea') || msgLower.includes('examen') || msgLower.includes('tesis') || msgLower.includes('cátedra') || msgLower.includes('investigación')) {
-    categoria = 'Universidad';
-  } else if (msgLower.includes('trabajo') || msgLower.includes('reunión') || msgLower.includes('proyecto') || msgLower.includes('junta')) {
-    categoria = 'Trabajo';
-  } else if (msgLower.includes('comprar') || msgLower.includes('leche') || msgLower.includes('mercado') || msgLower.includes('casa') || msgLower.includes('limpieza')) {
-    categoria = 'Hogar';
-  } else if (msgLower.includes('moto') || msgLower.includes('carro') || msgLower.includes('vehículo') || msgLower.includes('mantenimiento')) {
-    categoria = 'Vehiculo';
-  } else if (msgLower.includes('mascota') || msgLower.includes('perro') || msgLower.includes('gato')) {
-    categoria = 'Mascota';
-  } else if (msgLower.includes('dinero') || msgLower.includes('gasto') || msgLower.includes('pagar') || msgLower.includes('finanza')) {
-    categoria = 'Finanzas';
-  }
-  
-  if (msgLower.includes('urgente') || msgLower.includes('importante') || msgLower.includes('ahora') || msgLower.includes('para hoy')) {
-    prioridad = 'Alta';
-  } else if (msgLower.includes('mañana') || msgLower.includes('esta semana') || msgLower.includes('pronto')) {
-    prioridad = 'Media';
-  } else {
-    prioridad = 'Baja';
-  }
-  
-  if (message.length > 30) {
-    detalle = message;
-    titulo = message.substring(0, 30).trim() + '...';
-  }
-  
-  return {
-    titulo: titulo,
-    categoria: categoria,
-    prioridad: prioridad,
-    detalle: detalle
-  };
+  return { titulo: mensaje.substring(0, 50), categoria: cat, prioridad: pri };
 }
-
-async function saveToTareas(task) {
+async function guardar(tarea) {
   try {
-    const properties = {
-      Name: { title: [{ text: { content: task.titulo || 'Tarea' } }] },
-      Estado: { select: { name: 'Pendiente' } },
-      Categoria: { select: { name: task.categoria || 'Personal' } },
-      Prioridad: { select: { name: task.prioridad || 'Media' } }
-    };
-    
-    if (task.detalle) {
-      properties.Detalle = { rich_text: [{ text: { content: task.detalle } }] };
-    }
-
-    const response = await notion.pages.create({
+    const res = await notion.pages.create({
       parent: { page_id: SEGUNDO_CEREBRO_PAGE },
-      properties: properties
+      properties: {
+        Name: { title: [{ text: { content: tarea.titulo } }] },
+        Estado: { select: { name: 'Pendiente' } },
+        Categoria: { select: { name: tarea.categoria } },
+        Prioridad: { select: { name: tarea.prioridad } }
+      }
     });
-    
-    console.log('Saved:', response.id);
-    return response;
-  } catch (error) {
-    console.error('Save Error:', error.message);
+    return res;
+  } catch (e) {
+    console.log('Save error:', e.message);
     return null;
   }
 }
-
-app.get('/', (req, res) => res.send('Segundo Cerebro 🚀'));
-
+app.get('/', (req, res) => res.send('Segundo Cerebro'));
 app.post('/webhook', async (req, res) => {
-  const message = req.body.message;
-  if (!message || !message.text) return res.send('OK');
+  const msg = req.body.message;
+  if (!msg || !msg.text) return res.send('OK');
   
-  const chatId = message.chat.id;
-  const text = message.text.trim();
-  
-  console.log('Msg:', text);
-
+  const chatId = msg.chat.id;
+  const text = msg.text.trim();
   if (text === '/start') {
-    await sendTelegramMessage(chatId, 
-      '🎯 <b>Segundo Cerebro</b>\n\n' +
-      'Envíame tus tareas y las guardaré en Notion.\n\n' +
-      '<b>Comandos:</b>\n' +
-      '/start - Iniciar\n' +
-      '/tareas - Ver tareas\n' +
-      '/ayuda - Ayuda'
-    );
+    await send(chatId, '🎯 <b>Segundo Cerebro</b>\n/tareas - Ver tareas\n/ayuda - Ayuda');
     return res.send('OK');
   }
-
   if (text === '/tareas') {
     try {
       const tasks = await notion.databases.query({
@@ -130,48 +71,34 @@ app.post('/webhook', async (req, res) => {
       });
       
       if (tasks.results.length === 0) {
-        await sendTelegramMessage(chatId, '✅ No hay tareas');
+        await send(chatId, '✅ Sin tareas');
       } else {
-        let msg = '📋 <b>Tareas:</b>\n\n';
+        let m = '📋 <b>Tareas:</b>\n\n';
         tasks.results.forEach(t => {
-          const name = t.properties?.Name?.title[0]?.plain_text || 'X';
-          msg += `• ${name}\n`;
+          m += '• ' + (t.properties?.Name?.title[0]?.plain_text || 'X') + '\n';
         });
-        await sendTelegramMessage(chatId, msg);
+        await send(chatId, m);
       }
     } catch (e) {
-      await sendTelegramMessage(chatId, '❌ Error');
+      await send(chatId, '❌ Error');
     }
     return res.send('OK');
   }
-
   if (text === '/ayuda' || text === '/help') {
-    await sendTelegramMessage(chatId, 
-      '<b>Cómo usar:</b>\n' +
-      'Simplemente envíame tu tarea.\n\n' +
-      'Ej: "Comprar leche mañana"\n' +
-      'Ej: "Tarea de la universidad"\n' +
-      'Ej: "Mantenimiento de la moto"'
-    );
+    await send(chatId, '<b>Ejemplos:</b>\n• Comprar leche\n• Tarea de la universidad\n• Mantenimiento de la moto');
     return res.send('OK');
   }
-
-  await sendTelegramMessage(chatId, '⏳ Guardando...');
+  await send(chatId, '⏳ Guardando...');
   
-  const task = analyzeWithAI(text);
-  console.log('Task:', JSON.stringify(task));
-  
-  const saved = await saveToTareas(task);
+  const tarea = analizar(text);
+  const saved = await guardar(tarea);
   
   if (saved) {
-    await sendTelegramMessage(chatId, 
-      `✅ <b>Guardado</b>\n\n📝 ${task.titulo}\n🏷️ ${task.categoria} | ⚡ ${task.prioridad}`
-    );
+    await send(chatId, `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}`);
   } else {
-    await sendTelegramMessage(chatId, '❌ Error al guardar');
+    await send(chatId, '❌ Error');
   }
-
   res.send('OK');
 });
-
 app.listen(PORT, () => console.log('Listo'));
+---
