@@ -21,7 +21,7 @@ async function send(chatId, text) {
   try {
     await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
   } catch (e) {
-    console.log('Error:', e.message);
+    console.log('Telegram send error:', e.message);
   }
 }
 
@@ -45,7 +45,11 @@ function analizar(mensaje) {
 async function guardar(tarea) {
   try {
     const res = await notion.pages.create({
-      parent: { data_source_id: TAREA_DATA_SOURCE },
+      parent: { 
+        type: "data_source_id",
+        data_source_id: TAREA_DATA_SOURCE,
+        database_id: TAREA_DATABASE
+      },
       properties: {
         Name: { title: [{ text: { content: tarea.titulo } }] },
         Estado: { select: { name: 'Pendiente' } },
