@@ -8,7 +8,7 @@ app.use(express.json());
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
-const PORT = 5000;
+const PORT = process.env.PORT || 3000;
 
 const SEGUNDO_CEREBRO_PAGE = '33a6d89a-a55f-803a-9aa0-c119ac95a169';
 const TAREA_DATABASE = '33a6d89a-a55f-8121-a3ae-fcfb55dc8fa3';
@@ -50,9 +50,11 @@ async function guardar(tarea) {
       },
       properties: {
         Name: { title: [{ text: { content: tarea.titulo } }] },
+        Detalle: { rich_text: [{ text: { content: tarea.titulo } }] },
         Estado: { select: { name: 'Pendiente' } },
         Categoria: { select: { name: tarea.categoria } },
-        Prioridad: { select: { name: tarea.prioridad } }
+        Prioridad: { select: { name: tarea.prioridad } },
+        Seguimiento: { checkbox: false }
       }
     });
     return res;
@@ -82,7 +84,7 @@ app.post('/webhook', async (req, res) => {
   if (text === '/tareas') {
     try {
       const tasks = await notion.databases.query({
-        database_id: TAREA_DATA_SOURCE,
+        database_id: TAREA_DATABASE,
         filter: { property: 'Estado', select: { equals: 'Pendiente' } },
         page_size: 10
       });
