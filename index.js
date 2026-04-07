@@ -56,7 +56,8 @@ async function guardar(tarea) {
     return res;
   } catch (e) {
     console.log('Save error:', e.message);
-    return null;
+    console.log('Save error details:', JSON.stringify(e));
+    return { error: e.message };
   }
 }
 
@@ -111,10 +112,10 @@ app.post('/webhook', async (req, res) => {
   
   const saved = await guardar(tarea);
   
-  if (saved) {
+  if (saved && !saved.error) {
     await send(chatId, `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}`);
   } else {
-    await send(chatId, '❌ Error al guardar');
+    await send(chatId, `❌ Error al guardar\n${saved?.error || 'Unknown error'}`);
   }
 
   res.send('OK');
