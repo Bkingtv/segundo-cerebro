@@ -14,7 +14,6 @@ const PORT = process.env.PORT || 3000;
 
 const SEGUNDO_CEREBRO_PAGE = '33a6d89a-a55f-803a-9aa0-c119ac95a169';
 const TAREA_DATABASE = '33a6d89a-a55f-8121-a3ae-fcfb55dc8fa3';
-const TAREA_DATA_SOURCE = '33a6d89a-a55f-813f-b699-000bd8519e92';
 
 const notion = new Client({ auth: NOTION_API_KEY });
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: false });
@@ -23,67 +22,64 @@ async function sendTelegramMessage(chatId, text) {
   try {
     await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
   } catch (error) {
-    console.error('Error sending:', error.message);
+    console.error('Telegram Error:', error.message);
   }
 }
 
 async function analyzeWithAI(message) {
-  const systemPrompt = `Categorías exactas: Mascota, Vehiculo, Universidad, Hogar, Trabajo, Finanzas, Personal
-Prioridades: Alta, Media, Baja
-
-Responde solo con JSON válido (sin texto adicional):
-{"titulo":"título corto","categoria":"UNA CATEGORÍA","prioridad":"Alta|Media|Baja","detalle":"descripción o null"}`;
-
-  try {
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: 'openai/gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        max_tokens: 300
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://render.com',
-          'X-Title': 'Segundo Cerebro'
-        }
-      }
-    );
-    const content = response.data.choices[0].message.content;
-    console.log('AI response:', content);
-    return JSON.parse(content);
-  } catch (error) {
-    console.error('AI Error:', error.message);
-    if (error.response) {
-      console.error('Response:', error.response.data);
-    }
-    return null;
+  const categorias = ['Mascota', 'Vehiculo', 'Universidad', 'Hogar', 'Trabajo', 'Finanzas', 'Personal'];
+  const prioridades = ['Alta', 'Media', 'Baja'];
+  
+  let categoria = 'Personal';
+  let prioridad = 'Media';
+  let titulo = message;
+  let detalle = null;
+  
+  const msgLower = message.toLowerCase();
+  
+  if (msgLower.includes('universidad') || msgLower.includes('tarea') || msgLower.includes('examen') || msgLower.includes('tesis') || msgLower.includes('cátedra') || msgLower.includes('investigación')) {
+    categoria = 'Universidad';
+  } else if (msgLower.includes('trabajo') || msgLower.includes('reunión') || msgLower.includes('proyecto') || msgLower.includes('junta')) {
+    categoria = 'Trabajo';
+  } else if (msgLower.includes('comprar') || msgLower.includes('leche') || msgLower.includes('mercado') || msgLower.includes('casa') || msgLower.includes('limpieza')) {
+    categoria = 'Hogar';
+  } else if (msgLower.includes('moto') || msgLower.includes('carro') || msgLower.includes('vehículo') || msgLower.includes('mantenimiento')) {
+    categoria = 'Vehiculo';
+  } else if (msgLower.includes('mascota') || msgLower.includes('perro') || msgLower.includes('gato')) {
+    categoria = 'Mascota';
+  } else if (msgLower.includes('dinero') || msgLower.includes('gasto') || msgLower.includes('pagar') || msgLower.includes('finanza')) {
+    categoria = 'Finanzas';
   }
+  
+  if (msgLower.includes('urgente') || msgLower.includes('importante') || msgLower.includes('ahora') || msgLower.includes('para hoy')) {
+    prioridad = 'Alta';
+  } else if (msgLower.includes('mañana') || msgLower.includes('esta semana') || msgLower.includes('pronto')) {
+    prioridad = 'Media';
+  } else {
+    prioridad = 'Baja';
+  }
+  
+  if (message.length > 30) {
+    detalle = message;
+    titulo = message.substring(0, 30).trim() + '...';
+  }
+  
+  return {
+    titulo: titulo,
+    categoria: categoria,
+    prioridad: prioridad,
+    detalle: detalle
+  };
 }
 
 async function saveToTareas(task) {
   try {
-    console.log('Saving task:', JSON.stringify(task));
-    
     const properties = {
-      Name: { title: [{ text: { content: task.titulo || 'Tarea sin título' } }] },
-      Estado: { select: { name: 'Pendiente' } }
+      Name: { title: [{ text: { content: task.titulo || 'Tarea' } }] },
+      Estado: { select: { name: 'Pendiente' } },
+      Categoria: { select: { name: task.categoria || 'Personal' } },
+      Prioridad: { select: { name: task.prioridad || 'Media' } }
     };
-    
-    if (task.categoria) {
-      properties.Categoria = { select: { name: task.categoria } };
-    }
-    
-    if (task.prioridad) {
-      properties.Prioridad = { select: { name: task.prioridad } };
-    } else {
-      properties.Prioridad = { select: { name: 'Media' } };
-    }
     
     if (task.detalle) {
       properties.Detalle = { rich_text: [{ text: { content: task.detalle } }] };
@@ -94,13 +90,10 @@ async function saveToTareas(task) {
       properties: properties
     });
     
-    console.log('Saved successfully:', response.id);
+    console.log('Saved:', response.id);
     return response;
   } catch (error) {
     console.error('Save Error:', error.message);
-    if (error.response) {
-      console.error('Response:', JSON.stringify(error.response.data));
-    }
     return null;
   }
 }
@@ -109,15 +102,12 @@ app.get('/', (req, res) => res.send('Segundo Cerebro 🚀'));
 
 app.post('/webhook', async (req, res) => {
   const message = req.body.message;
-  if (!message || !message.text) {
-    console.log('No message or text');
-    return res.send('OK');
-  }
+  if (!message || !message.text) return res.send('OK');
   
   const chatId = message.chat.id;
   const text = message.text.trim();
   
-  console.log('Received:', text);
+  console.log('Msg:', text);
 
   if (text === '/start') {
     await sendTelegramMessage(chatId, 
@@ -125,17 +115,13 @@ app.post('/webhook', async (req, res) => {
       'Envíame tus tareas y las guardaré en Notion.\n\n' +
       '<b>Comandos:</b>\n' +
       '/start - Iniciar\n' +
-      '/tareas - Ver tareas pendientes\n' +
-      '/enviar - Nueva tarea\n\n' +
-      '<b>Ejemplos:</b>\n' +
-      '• "Comprar leche mañana"\n' +
-      '• "Tarea de la universidad para mañana"\n' +
-      '• "Reunión con equipo el viernes"'
+      '/tareas - Ver tareas\n' +
+      '/ayuda - Ayuda'
     );
     return res.send('OK');
   }
 
-  if (text === '/tareas' || text === '/tareas@AsistNotion_bot') {
+  if (text === '/tareas') {
     try {
       const tasks = await notion.databases.query({
         database_id: TAREA_DATABASE,
@@ -144,66 +130,48 @@ app.post('/webhook', async (req, res) => {
       });
       
       if (tasks.results.length === 0) {
-        await sendTelegramMessage(chatId, '✅ No hay tareas pendientes.');
+        await sendTelegramMessage(chatId, '✅ No hay tareas');
       } else {
-        let msg = '📋 <b>Tareas Pendientes:</b>\n\n';
+        let msg = '📋 <b>Tareas:</b>\n\n';
         tasks.results.forEach(t => {
-          const name = t.properties?.Name?.title[0]?.plain_text || 'Sin título';
-          const prioridad = t.properties?.Prioridad?.select?.name || '';
-          const categoria = t.properties?.Categoria?.select?.name || '';
-          msg += `• ${name}`;
-          if (prioridad) msg += ` (${prioridad})`;
-          if (categoria) msg += ` - ${categoria}`;
-          msg += '\n';
+          const name = t.properties?.Name?.title[0]?.plain_text || 'X';
+          msg += `• ${name}\n`;
         });
         await sendTelegramMessage(chatId, msg);
       }
     } catch (e) {
-      console.error('Error querying:', e.message);
-      await sendTelegramMessage(chatId, '❌ Error al obtener tareas.');
+      await sendTelegramMessage(chatId, '❌ Error');
     }
     return res.send('OK');
   }
 
-  if (text === '/enviar' || text === '/enviar@AsistNotion_bot') {
-    await sendTelegramMessage(chatId, '📝 Escribe tu tarea:');
-    return res.send('OK');
-  }
-
-  if (text === '/help') {
+  if (text === '/ayuda' || text === '/help') {
     await sendTelegramMessage(chatId, 
-      '<b>Comandos:</b>\n' +
-      '/start - Iniciar\n' +
-      '/tareas - Ver tareas\n' +
-      '/enviar - Nueva tarea\n\n' +
-      'Simplemente envíame cualquier texto y lo convertiré en tarea.'
+      '<b>Cómo usar:</b>\n' +
+      'Simplemente envíame tu tarea.\n\n' +
+      'Ej: "Comprar leche mañana"\n' +
+      'Ej: "Tarea de la universidad"\n' +
+      'Ej: "Mantenimiento de la moto"'
     );
     return res.send('OK');
   }
 
-  await sendTelegramMessage(chatId, '⏳ Analizando con IA...');
+  await sendTelegramMessage(chatId, '⏳ Guardando...');
   
-  const task = await analyzeWithAI(text);
+  const task = analyzeWithAI(text);
+  console.log('Task:', JSON.stringify(task));
   
-  if (!task) {
-    await sendTelegramMessage(chatId, '❌ Error al analizar. Intenta de nuevo.');
-    return res.send('OK');
-  }
-
   const saved = await saveToTareas(task);
   
   if (saved) {
-    const msg = `✅ <b>Tarea guardada</b>\n\n📝 ${task.titulo}\n🏷️ ${task.categoria || 'Personal'} | ⚡ ${task.prioridad || 'Media'}`;
-    if (task.detalle) {
-      await sendTelegramMessage(chatId, msg + `\n📋 ${task.detalle}`);
-    } else {
-      await sendTelegramMessage(chatId, msg);
-    }
+    await sendTelegramMessage(chatId, 
+      `✅ <b>Guardado</b>\n\n📝 ${task.titulo}\n🏷️ ${task.categoria} | ⚡ ${task.prioridad}`
+    );
   } else {
-    await sendTelegramMessage(chatId, '❌ Error al guardar en Notion. La IA analizó la tarea pero no se pudo guardar.');
+    await sendTelegramMessage(chatId, '❌ Error al guardar');
   }
 
   res.send('OK');
 });
 
-app.listen(PORT, () => console.log(`Puerto ${PORT}`));
+app.listen(PORT, () => console.log('Listo'));
