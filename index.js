@@ -46,9 +46,7 @@ async function guardar(tarea) {
   try {
     const res = await notion.pages.create({
       parent: { 
-        type: "data_source_id",
-        data_source_id: TAREA_DATA_SOURCE,
-        database_id: TAREA_DATABASE
+        data_source_id: TAREA_DATA_SOURCE
       },
       properties: {
         Name: { title: [{ text: { content: tarea.titulo } }] },
