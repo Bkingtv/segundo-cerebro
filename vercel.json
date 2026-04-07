@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/webhook",
+      "dest": "index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "index.js"
+    }
+  ],
+  "env": {
+    "TELEGRAM_TOKEN": "@telegram-token",
+    "OPENROUTER_API_KEY": "@openrouter-api-key",
+    "OPENAI_API_KEY": "@openai-api-key",
+    "NOTION_API_KEY": "@notion-api-key",
+    "PORT": "3000"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "children": [
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"📋 Tareas Central"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Base de datos central para todas las tareas - se maneja desde Telegram"}}]}},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"🛒 Compras"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Despensa y Lista de Compras"}}]}},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"💰 Finanzas"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Inversiones, Finanzas Personales, Presupuesto"}}]}},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"🏋️ Salud"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Entrenamiento y Seguimiento de Hábitos"}}]}},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"📚 Aprendizaje"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Agenda de Estudiante, Lista de Lectura"}}]}},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"💼 Proyectos y Trabajo"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Planificación de Proyectos, Seguimiento de Empleo Online"}}]}},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"🍽️ Comidas"}}]}},
+    {"object":"block","type":"paragraph","paragraph","rich_text":[]},
+    {"object":"block","type":"heading_2","heading_2":{"rich_text":[{"text":{"content":"👤 Personal"}}]}},
+    {"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Currículum, Sistema de Gamificación (UNEXCA/UNESR + Trabajo)"}}]}}
+  ]
+}
