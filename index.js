@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 const SEGUNDO_CEREBRO_PAGE = '33a6d89a-a55f-803a-9aa0-c119ac95a169';
 const TAREA_DATABASE = '33a6d89a-a55f-8121-a3ae-fcfb55dc8fa3';
+const TAREA_DATA_SOURCE = '33a6d89a-a55f-813f-b699-000bd8519e92';
 
 const notion = new Client({ auth: NOTION_API_KEY });
 const bot = new TelegramBot(TELEGRAM_TOKEN, { polling: false });
@@ -44,7 +45,7 @@ function analizar(mensaje) {
 async function guardar(tarea) {
   try {
     const res = await notion.pages.create({
-      parent: { database_id: TAREA_DATABASE },
+      parent: { data_source_id: TAREA_DATA_SOURCE },
       properties: {
         Name: { title: [{ text: { content: tarea.titulo } }] },
         Estado: { select: { name: 'Pendiente' } },
@@ -78,7 +79,7 @@ app.post('/webhook', async (req, res) => {
   if (text === '/tareas') {
     try {
       const tasks = await notion.databases.query({
-        database_id: TAREA_DATABASE,
+        database_id: TAREA_DATA_SOURCE,
         filter: { property: 'Estado', select: { equals: 'Pendiente' } },
         page_size: 10
       });
