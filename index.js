@@ -30,9 +30,10 @@ function analizar(mensaje) {
   let cat = 'Personal';
   let pri = 'Media';
   
-  if (m.includes('universidad') || m.includes('tarea') || m.includes('cátedra') || m.includes('investigación') || m.includes('examen')) cat = 'Universidad';
+  // Mascota - debe ser primero para detectar Luna/Husky antes que "comprar"
+  if (m.includes('mascota') || m.includes('perro') || m.includes('gato') || m.includes('luna') || m.includes('husky')) cat = 'Mascota';
+  else if (m.includes('universidad') || m.includes('tarea') || m.includes('cátedra') || m.includes('investigación') || m.includes('examen')) cat = 'Universidad';
   else if (m.includes('trabajo') || m.includes('reunión') || m.includes('proyecto')) cat = 'Trabajo';
-  else if (m.includes('mascota') || m.includes('perro') || m.includes('gato') || m.includes('luna')) cat = 'Mascota';
   else if (m.includes('moto') || m.includes('carro') || m.includes('mantenimiento') || m.includes('vehículo')) cat = 'Vehículo';
   else if (m.includes('dinero') || m.includes('gasto') || m.includes('finanza')) cat = 'Finanzas';
   else if (m.includes('comprar') || m.includes('leche') || m.includes('mercado') || m.includes('casa')) cat = 'Hogar';
