@@ -8,7 +8,7 @@ app.use(express.json());
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const NOTION_API_KEY = process.env.NOTION_API_KEY;
-const PORT = process.env.PORT || 3000;
+const PORT = 5000;
 
 const SEGUNDO_CEREBRO_PAGE = '33a6d89a-a55f-803a-9aa0-c119ac95a169';
 const TAREA_DATABASE = '33a6d89a-a55f-8121-a3ae-fcfb55dc8fa3';
@@ -21,7 +21,7 @@ async function send(chatId, text) {
   try {
     await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
   } catch (e) {
-    console.log('Error:', e.message);
+    console.log('Telegram send error:', e.message);
   }
 }
 
