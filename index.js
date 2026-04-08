@@ -30,7 +30,6 @@ function analizar(mensaje) {
   let cat = 'Personal';
   let pri = 'Media';
   
-  // Mascota - debe ser primero para detectar Luna/Husky antes que "comprar"
   if (m.includes('mascota') || m.includes('perro') || m.includes('gato') || m.includes('luna') || m.includes('husky')) cat = 'Mascota';
   else if (m.includes('universidad') || m.includes('tarea') || m.includes('cátedra') || m.includes('investigación') || m.includes('examen')) cat = 'Universidad';
   else if (m.includes('trabajo') || m.includes('reunión') || m.includes('proyecto')) cat = 'Trabajo';
@@ -40,7 +39,71 @@ function analizar(mensaje) {
   
   if (m.includes('urgente') || m.includes('importante') || m.includes('ahora')) pri = 'Alta';
   
-  return { titulo: mensaje.substring(0, 50), categoria: cat, prioridad: pri };
+  return { titulo: mensaje.substring(0, 50), categoria: cat, prioridad: pri, fecha: getFecha(mensaje) };
+}
+
+function getFecha(mensaje) {
+  const m = mensaje.toLowerCase();
+  const today = new Date();
+  let fecha = null;
+  
+  if (m.includes('hoy')) {
+    fecha = today.toISOString().split('T')[0];
+  } else if (m.includes('mañana') || m.includes('manana')) {
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    fecha = tomorrow.toISOString().split('T')[0];
+  } else if (m.includes('pasado mañana') || m.includes('pasado manana')) {
+    const dayAfter = new Date(today);
+    dayAfter.setDate(dayAfter.getDate() + 2);
+    fecha = dayAfter.toISOString().split('T')[0];
+  } else if (m.includes('lunes')) {
+    const nextMonday = new Date(today);
+    const day = nextMonday.getDay();
+    const daysUntil = (8 - day) % 7;
+    if (day === 0) daysUntil = 1;
+    else if (day === 1) daysUntil = 0;
+    nextMonday.setDate(nextMonday.getDate() + daysUntil);
+    fecha = nextMonday.toISOString().split('T')[0];
+  } else if (m.includes('martes')) {
+    const nextDay = new Date(today);
+    const day = nextDay.getDay();
+    const daysUntil = (2 - day + 7) % 7 || 7;
+    nextDay.setDate(nextDay.getDate() + daysUntil);
+    fecha = nextDay.toISOString().split('T')[0];
+  } else if (m.includes('miércoles')) {
+    const nextDay = new Date(today);
+    const day = nextDay.getDay();
+    const daysUntil = (3 - day + 7) % 7 || 7;
+    nextDay.setDate(nextDay.getDate() + daysUntil);
+    fecha = nextDay.toISOString().split('T')[0];
+  } else if (m.includes('jueves')) {
+    const nextDay = new Date(today);
+    const day = nextDay.getDay();
+    const daysUntil = (4 - day + 7) % 7 || 7;
+    nextDay.setDate(nextDay.getDate() + daysUntil);
+    fecha = nextDay.toISOString().split('T')[0];
+  } else if (m.includes('viernes')) {
+    const nextDay = new Date(today);
+    const day = nextDay.getDay();
+    const daysUntil = (5 - day + 7) % 7 || 7;
+    nextDay.setDate(nextDay.getDate() + daysUntil);
+    fecha = nextDay.toISOString().split('T')[0];
+  } else if (m.includes('sábado') || m.includes('sabado')) {
+    const nextDay = new Date(today);
+    const day = nextDay.getDay();
+    const daysUntil = (6 - day + 7) % 7 || 7;
+    nextDay.setDate(nextDay.getDate() + daysUntil);
+    fecha = nextDay.toISOString().split('T')[0];
+  } else if (m.includes('domingo')) {
+    const nextDay = new Date(today);
+    const day = nextDay.getDay();
+    const daysUntil = (7 - day) % 7 || 7;
+    nextDay.setDate(nextDay.getDate() + daysUntil);
+    fecha = nextDay.toISOString().split('T')[0];
+  }
+  
+  return fecha;
 }
 
 async function guardar(tarea) {
@@ -56,7 +119,7 @@ async function guardar(tarea) {
         Categoria: { select: { name: tarea.categoria } },
         Prioridad: { select: { name: tarea.prioridad } },
         Seguimiento: { checkbox: false },
-        Fecha: { date: null },
+        Fecha: { date: tarea.fecha ? tarea.fecha : null },
         Proyecto: { select: null },
         Ubicacion: { select: null }
       }
@@ -120,8 +183,8 @@ app.post('/webhook', async (req, res) => {
   
   const saved = await guardar(tarea);
   
-  if (saved && !saved.error) {
-    await send(chatId, `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}`);
+  if (tarea?.fecha) {
+    await send(chatId, `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}\n📅 Fecha: ${tarea.fecha}`);
   } else {
     await send(chatId, `❌ Error al guardar\n${saved?.error || 'Unknown error'}`);
   }
