@@ -308,11 +308,12 @@ app.post('/webhook', async (req, res) => {
   
   const saved = await guardar(tarea);
   
-  let msg = `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}`;
-  if (tarea?.fecha) msg += `\n📅 Fecha: ${tarea.fecha}`;
-  if (tarea?.proyecto) msg += `\n📁 Proyecto: ${tarea.proyecto}`;
-  if (tarea?.ubicacion) msg += `\n📍 Ubicación: ${tarea.ubicacion}`;
-  await send(chatId, msg);
+  if (saved && !saved.error) {
+    let response = `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}`;
+    if (tarea?.fecha) response += `\n📅 Fecha: ${tarea.fecha}`;
+    if (tarea?.proyecto) response += `\n📁 Proyecto: ${tarea.proyecto}`;
+    if (tarea?.ubicacion) response += `\n📍 Ubicación: ${tarea.ubicacion}`;
+    await send(chatId, response);
   } else {
     await send(chatId, `❌ Error al guardar\n${saved?.error || 'Unknown error'}`);
   }
