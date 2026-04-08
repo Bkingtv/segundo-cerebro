@@ -43,6 +43,7 @@ function analizar(mensaje) {
 }
 
 const UBICACIONES = {
+  'luna': 'Casa',
   'supermercado': 'Supermercado',
   'tienda': 'Tienda',
   'mercado': 'Mercado',
@@ -59,13 +60,26 @@ const UBICACIONES = {
   'restaurante': 'Restaurante',
   'restaurant': 'Restaurante',
   'banco': 'Banco',
-  ' oficina': 'Oficina',
+  'oficina': 'Oficina',
   'parque': 'Parque',
   'consultorio': 'Consultorio',
   'mecánico': 'Mecánico',
-  'mecanico': 'Mecánico',
-  'luna': 'Casa'
+  'mecanico': 'Mecánico'
 };
+
+const COMPRAS_SUPERMERCADO = [
+  'leche', 'harina', 'pan', 'huevos', 'queso', 'mantequilla', 'aceite', 'sal',
+  'azúcar', 'azucar', 'café', 'cafe', 'arroz', 'frijoles', 'pasta', 'salsa',
+  'tomate', 'cebolla', 'ajo', 'papa', 'patata', 'zanahoria', 'lechuga',
+  'tomate', 'aguacate', 'plátano', 'platano', 'manzana', 'naranja', 'limón', 'limon',
+  'pollo', 'carne', 'pescado', 'huevo', 'embutidos', 'jamón', 'jamon',
+  'tocino', 'perro', 'hot dog', 'pizza', 'hamburguesa', 'papitas', 'chips',
+  'galletas', 'chocolate', 'candy', 'dulces', 'refresco', 'jugo', 'agua',
+  'cereal', 'avena', 'yogurt', 'yoghurt', 'mermelada', 'crema', 'nutella',
+  'pañales', 'panales', 'servilletas', 'papel', 'jabón', 'jabon', 'detergente',
+  'azeite', 'vinagre', 'mostaza', 'mayonesa', 'ketchup', 'aderezos',
+  'harina', 'levadura', 'polvo', 'royal', 'congelado', 'helado'
+];
 
 const PROYECTOS = {
   'casa': 'Casa',
@@ -101,6 +115,9 @@ function getUbicacion(mensaje) {
   if (match) return match[1] || match[2];
   for (const [key, value] of Object.entries(UBICACIONES)) {
     if (m.includes(key)) return value;
+  }
+  for (const item of COMPRAS_SUPERMERCADO) {
+    if (m.includes(item)) return 'Supermercado';
   }
   return null;
 }
