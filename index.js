@@ -53,6 +53,9 @@ const UBICACIONES = {
   'facultad': 'Universidad',
   'veterinaria': 'Veterinaria',
   'vet': 'Veterinaria',
+  'clinica': 'Clínica',
+  'consultorio': 'Consultorio',
+  'hospital': 'Hospital',
   'peluquería': 'Peluquería',
   'peluqueria': 'Peluquería',
   'gimnasio': 'Gimnasio',
@@ -62,9 +65,12 @@ const UBICACIONES = {
   'banco': 'Banco',
   'oficina': 'Oficina',
   'parque': 'Parque',
-  'consultorio': 'Consultorio',
   'mecánico': 'Mecánico',
-  'mecanico': 'Mecánico'
+  'mecanico': 'Mecánico',
+  'ferretería': 'Ferretería',
+  'ferreteria': 'Ferretería',
+  'tienda mascotas': 'Tienda de Mascotas',
+  'tienda animals': 'Tienda de Mascotas'
 };
 
 const COMPRAS_SUPERMERCADO = [
@@ -78,7 +84,32 @@ const COMPRAS_SUPERMERCADO = [
   'cereal', 'avena', 'yogurt', 'yoghurt', 'mermelada', 'crema', 'nutella',
   'pañales', 'panales', 'servilletas', 'papel', 'jabón', 'jabon', 'detergente',
   'azeite', 'vinagre', 'mostaza', 'mayonesa', 'ketchup', 'aderezos',
-  'harina', 'levadura', 'polvo', 'royal', 'congelado', 'helado'
+  'levadura', 'polvo', 'royal', 'congelado', 'helado',
+  'yogurt', 'yoghurt', 'croissant', 'donut', 'empanada', 'panqueta',
+  'quesadilla', 'taco', 'arepa', 'cachapa', 'tequeño', ' pastel'
+];
+
+const COMPRA_FERRETERIA = [
+  'brocha', 'pintura', 'pintar', 'martillo', 'clavo', 'tornillo', 'destornillador',
+  'alambre', 'cable', 'extension', 'protector', 'enchufe', 'interruptor',
+  'taladro', 'sierra', 'limalla', 'lija', 'espatula', 'rodillo',
+  'cincel', 'formón', 'serrucho', 'tenaza', 'pinza', 'alicate',
+  'cemento', 'pegamento', 'silicon', 'sellador', 'masilla',
+  'tubo', 'caño', 'valvula', 'grifo', 'llave paso',
+  'bombillo', 'foco', 'led', 'bombilla', 'interruptor',
+  'candado', 'cerrojo', 'bisagra', 'tirador', 'manija',
+  'alicuota', 'pvc', 'conduit', 'box', 'toner',
+  'espatula', 'paleta', 'andamio', 'escalera', 'carretilla'
+];
+
+const COMPRA_VETERINARIA = [
+  'comida perro', 'comida gato', 'alimento mascota', 'balanceado', 'croqueta',
+  'hueso', 'juguete masticable', 'pellet', 'trace', 'snack perro',
+  'collar', 'correa', 'arnes', 'bozal', 'cama perro', 'cama gato',
+  'arena gato', 'arena sanitaria', 'little cats', 'viruta',
+  'medicamento mascota', 'antibiotico perro', 'desparasitante', 'vacuna perro',
+  'shampoo medico', 'jabon medico', 'cepillo peine', 'cortaunas',
+  'plato', 'comedero', 'bebedero', 'fuente agua'
 ];
 
 const PROYECTOS = {
@@ -118,6 +149,20 @@ function getUbicacion(mensaje) {
   }
   for (const item of COMPRAS_SUPERMERCADO) {
     if (m.includes(item)) return 'Supermercado';
+  }
+  for (const item of COMPRA_FERRETERIA) {
+    if (m.includes(item)) return 'Ferretería';
+  }
+  for (const item of COMPRA_VETERINARIA) {
+    if (m.includes(item)) return 'Tienda de Mascotas';
+  }
+  if ((m.includes('luna') || m.includes('husky') || m.includes('perro') || m.includes('mascota') || m.includes('gato')) && 
+      (m.includes('medico') || m.includes('médico') || m.includes('doctor') || m.includes('veterinario'))) {
+    return 'Veterinaria';
+  }
+  if ((m.includes('yo') || m.includes('mis hijos') || m.includes('mi esposa') || m.includes('jessika') || m.includes('mi')) && 
+      (m.includes('medico') || m.includes('médico') || m.includes('doctor') || m.includes('dentista') || m.includes('clínica'))) {
+    return 'Clínica';
   }
   return null;
 }
