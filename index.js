@@ -42,16 +42,67 @@ function analizar(mensaje) {
   return { titulo: mensaje.substring(0, 50), categoria: cat, prioridad: pri, fecha: getFecha(mensaje), proyecto: getProyecto(mensaje), ubicacion: getUbicacion(mensaje) };
 }
 
+const UBICACIONES = {
+  'supermercado': 'Supermercado',
+  'tienda': 'Tienda',
+  'mercado': 'Mercado',
+  'casa': 'Casa',
+  'trabajo': 'Trabajo',
+  'universidad': 'Universidad',
+  'facultad': 'Universidad',
+  'veterinaria': 'Veterinaria',
+  'vet': 'Veterinaria',
+  'peluquería': 'Peluquería',
+  'peluqueria': 'Peluquería',
+  'gimnasio': 'Gimnasio',
+  'farmacia': 'Farmacia',
+  'restaurante': 'Restaurante',
+  'restaurant': 'Restaurante',
+  'banco': 'Banco',
+  ' oficina': 'Oficina',
+  'parque': 'Parque',
+  'consultorio': 'Consultorio',
+  'mecánico': 'Mecánico',
+  'mecanico': 'Mecánico',
+  'luna': 'Casa'
+};
+
+const PROYECTOS = {
+  'casa': 'Casa',
+  'mascota': 'Mascota',
+  'mascotas': 'Mascota',
+  'luna': 'Mascota',
+  'husky': 'Mascota',
+  'trabajo': 'Trabajo',
+  'universidad': 'Universidad',
+  'estudio': 'Universidad',
+  'finanzas': 'Finanzas',
+  'salud': 'Salud',
+  'ejercicio': 'Salud',
+  'vehículo': 'Vehículo',
+  'vehiculo': 'Vehículo',
+  'moto': 'Vehículo',
+  'carro': 'Vehículo'
+};
+
 function getProyecto(mensaje) {
   const m = mensaje.toLowerCase();
   const match = m.match(/proyecto[:\s]+(.+?)(?:\s+|$)/);
-  return match ? match[1].trim() : null;
+  if (match) return match[1].trim();
+  for (const [key, value] of Object.entries(PROYECTOS)) {
+    if (m.includes(key)) return value;
+  }
+  return null;
 }
 
 function getUbicacion(mensaje) {
   const m = mensaje.toLowerCase();
   const match = m.match(/ubicación[:\s]+(.+?)(?:\s+|$)|ubicacion[:\s]+(.+?)(?:\s+|$)/);
-  return match ? (match[1] || match[2]).trim() : null;
+  if (match) return match[1] || match[2];
+  for (const [key, value] of Object.entries(UBICACIONES)) {
+    if (m.includes(key)) return value;
+  }
+  return null;
 }
 
 function getFecha(mensaje) {
