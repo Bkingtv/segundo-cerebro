@@ -39,7 +39,19 @@ function analizar(mensaje) {
   
   if (m.includes('urgente') || m.includes('importante') || m.includes('ahora')) pri = 'Alta';
   
-  return { titulo: mensaje.substring(0, 50), categoria: cat, prioridad: pri, fecha: getFecha(mensaje) };
+  return { titulo: mensaje.substring(0, 50), categoria: cat, prioridad: pri, fecha: getFecha(mensaje), proyecto: getProyecto(mensaje), ubicacion: getUbicacion(mensaje) };
+}
+
+function getProyecto(mensaje) {
+  const m = mensaje.toLowerCase();
+  const match = m.match(/proyecto[:\s]+(.+?)(?:\s+|$)/);
+  return match ? match[1].trim() : null;
+}
+
+function getUbicacion(mensaje) {
+  const m = mensaje.toLowerCase();
+  const match = m.match(/ubicación[:\s]+(.+?)(?:\s+|$)|ubicacion[:\s]+(.+?)(?:\s+|$)/);
+  return match ? (match[1] || match[2]).trim() : null;
 }
 
 function getFecha(mensaje) {
@@ -120,8 +132,8 @@ async function guardar(tarea) {
         Prioridad: { select: { name: tarea.prioridad } },
         Seguimiento: { checkbox: false },
         Fecha: { date: tarea.fecha ? tarea.fecha : null },
-        Proyecto: { select: null },
-        Ubicacion: { select: null }
+        Proyecto: { select: tarea.proyecto ? { name: tarea.proyecto } : null },
+        Ubicacion: { select: tarea.ubicacion ? { name: tarea.ubicacion } : null }
       }
     });
     return res;
@@ -183,8 +195,11 @@ app.post('/webhook', async (req, res) => {
   
   const saved = await guardar(tarea);
   
-  if (tarea?.fecha) {
-    await send(chatId, `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}\n📅 Fecha: ${tarea.fecha}`);
+  let msg = `✅ <b>Guardado</b>\n📝 ${tarea.titulo}\n🏷️ ${tarea.categoria} | ⚡ ${tarea.prioridad}`;
+  if (tarea?.fecha) msg += `\n📅 Fecha: ${tarea.fecha}`;
+  if (tarea?.proyecto) msg += `\n📁 Proyecto: ${tarea.proyecto}`;
+  if (tarea?.ubicacion) msg += `\n📍 Ubicación: ${tarea.ubicacion}`;
+  await send(chatId, msg);
   } else {
     await send(chatId, `❌ Error al guardar\n${saved?.error || 'Unknown error'}`);
   }
