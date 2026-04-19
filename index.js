@@ -236,21 +236,31 @@ async function guardar(tarea) {
   console.log('DB:', TAREA_DATABASE);
   console.log('Tarea:', tarea);
   try {
+    const properties = {
+      Detalle: { rich_text: [{ text: { content: tarea.titulo } }] },
+      Estado: { select: { name: 'Pendiente' } },
+      Categoria: { select: { name: tarea.categoria } },
+      Prioridad: { select: { name: tarea.prioridad } },
+      Seguimiento: { checkbox: false }
+    };
+    
+    if (tarea.fecha) {
+      properties.Fecha = { date: { start: tarea.fecha } };
+    }
+    if (tarea.proyecto) {
+      properties.Proyecto = { select: { name: tarea.proyecto } };
+    }
+    if (tarea.ubicacion) {
+      properties.Ubicacion = { select: { name: tarea.ubicacion } };
+    }
+    
+    properties.title = { title: [{ text: { content: tarea.titulo } }] };
+    
     const res = await notion.pages.create({
       parent: { 
         database_id: TAREA_DATABASE
       },
-      properties: {
-        Name: { title: [{ text: { content: tarea.titulo } }] },
-        Detalle: { rich_text: [{ text: { content: tarea.titulo } }] },
-        Estado: { select: { name: 'Pendiente' } },
-        Categoria: { select: { name: tarea.categoria } },
-        Prioridad: { select: { name: tarea.prioridad } },
-        Seguimiento: { checkbox: false },
-        Fecha: tarea.fecha ? { date: { start: tarea.fecha } } : null,
-        Proyecto: tarea.proyecto ? { select: { name: tarea.proyecto } } : null,
-        Ubicacion: tarea.ubicacion ? { select: { name: tarea.ubicacion } } : null
-      }
+      properties: properties
     });
     return res;
   } catch (e) {
