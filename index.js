@@ -235,7 +235,7 @@ async function guardar(tarea) {
   try {
     const res = await notion.pages.create({
       parent: { 
-        data_source_id: TAREA_DATA_SOURCE
+        database_id: TAREA_DATABASE
       },
       properties: {
         Name: { title: [{ text: { content: tarea.titulo } }] },
@@ -244,9 +244,9 @@ async function guardar(tarea) {
         Categoria: { select: { name: tarea.categoria } },
         Prioridad: { select: { name: tarea.prioridad } },
         Seguimiento: { checkbox: false },
-        Fecha: { date: tarea.fecha ? tarea.fecha : null },
-        Proyecto: { select: tarea.proyecto ? { name: tarea.proyecto } : null },
-        Ubicacion: { select: tarea.ubicacion ? { name: tarea.ubicacion } : null }
+        Fecha: tarea.fecha ? { date: { start: tarea.fecha } } : null,
+        Proyecto: tarea.proyecto ? { select: { name: tarea.proyecto } } : null,
+        Ubicacion: tarea.ubicacion ? { select: { name: tarea.ubicacion } } : null
       }
     });
     return res;
