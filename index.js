@@ -238,7 +238,7 @@ async function guardar(tarea) {
         database_id: TAREA_DATABASE
       },
       properties: {
-        Name: { title: [{ text: { content: tarea.titulo } }] },
+        title: { title: [{ text: { content: tarea.titulo } }] },
         Detalle: { rich_text: [{ text: { content: tarea.titulo } }] },
         Estado: { select: { name: 'Pendiente' } },
         Categoria: { select: { name: tarea.categoria } },
