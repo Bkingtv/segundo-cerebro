@@ -232,6 +232,9 @@ function getFecha(mensaje) {
 }
 
 async function guardar(tarea) {
+  console.log('NOTION_KEY:', NOTION_API_KEY ? 'defined' : 'undefined');
+  console.log('DB:', TAREA_DATABASE);
+  console.log('Tarea:', tarea);
   try {
     const res = await notion.pages.create({
       parent: { 
